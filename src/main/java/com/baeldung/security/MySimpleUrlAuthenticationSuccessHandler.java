@@ -18,7 +18,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component("myAuthenticationSuccessHandler")
 public class MySimpleUrlAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
@@ -82,16 +85,18 @@ public class MySimpleUrlAuthenticationSuccessHandler implements AuthenticationSu
     protected String determineTargetUrl(final Authentication authentication) {
         boolean isUser = false;
         boolean isAdmin = false;
+        boolean isManager = false;
         final Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        for (final GrantedAuthority grantedAuthority : authorities) {
-            if (grantedAuthority.getAuthority().equals("READ_PRIVILEGE")) {
-                isUser = true;
-            } else if (grantedAuthority.getAuthority().equals("WRITE_PRIVILEGE")) {
-                isAdmin = true;
-                isUser = false;
-                break;
-            }
+
+        List<String> authorityList = authorities.stream().map(ga -> ga.getAuthority()).collect(Collectors.toList());
+        if(authorityList.containsAll(Arrays.asList("READ_PRIVILEGE", "WRITE_PRIVILEGE", "CHANGE_PASSWORD_PRIVILEGE", "MANAGER_PRIVILEGE"))) {
+            isAdmin = true;
+        } else if(authorityList.containsAll(Arrays.asList("READ_PRIVILEGE", "WRITE_PRIVILEGE", "MANAGER_PRIVILEGE"))) {
+            isManager = true;
+        } else if(authorityList.containsAll(Arrays.asList("READ_PRIVILEGE", "CHANGE_PASSWORD_PRIVILEGE"))) {
+            isUser = true;
         }
+
         if (isUser) {
         	 String username;
              if (authentication.getPrincipal() instanceof User) {
@@ -104,6 +109,8 @@ public class MySimpleUrlAuthenticationSuccessHandler implements AuthenticationSu
             return "/homepage.html?user="+username;
         } else if (isAdmin) {
             return "/console";
+        } else if (isManager) {
+            return "/management.html";
         } else {
             throw new IllegalStateException();
         }

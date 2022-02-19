@@ -20,10 +20,12 @@
     <h1>This is the landing page for the admin</h1>
     
     <div sec:authorize="hasAuthority('READ_PRIVILEGE')">This text is only visible to a user</div>
-          
     <div sec:authorize="hasAuthority('WRITE_PRIVILEGE')"> This text is only visible to an admin</div>
+    <div sec:authorize="hasAuthority('MANAGER_PRIVILEGE')"> This text is only visible to user with MANAGER role</div>
     
       <a class="btn btn-default" th:href="@{/admin.html}" th:utext="#{label.pages.admin}">admin</a>
+      <br/>
+      <a class="btn btn-default" th:href="@{/management.html}" th:utext="#{label.pages.management}">management</a>
       <br/>
       <a class="btn btn-default" th:href="@{/changePassword.html}" th:utext="#{message.changePassword}">change password</a>
       <br/>
